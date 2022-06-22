@@ -1,18 +1,16 @@
-import glfw
 import numpy as np
+import glfw
 import sys
 import random
 import imgui
 from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
-import os.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import grafica.basic_shapes as bs
-import grafica.easy_shaders as es
 import grafica.transformations as tr
 import grafica.lighting_shaders as ls
 from ModulationTransformShaderProgram import ModulationTransformShaderProgram
 from controller import Controller
+from model import Cube
+from utils import *
 
 
 if __name__ == "__main__":
@@ -34,38 +32,51 @@ if __name__ == "__main__":
 
     glfw.make_context_current(window)
 
-    # Creating our shader program and telling OpenGL to use it
-    pipeline = ModulationTransformShaderProgram() #ls.SimpleTexturePhongShaderProgram()
-    glUseProgram(pipeline.shaderProgram)
+    # Connecting the callback function 'on_key' to handle keyboard events
+    glfw.set_key_callback(window, controller.on_key)
+    # Connecting the callback function 'cursor_pos_callback' to handle mouse events
+    glfw.set_cursor_pos_callback(window, controller.cursor_pos_callback)
 
+    # Creating our shader program and telling OpenGL to use it
+    pipeline = ls.SimplePhongShaderProgram()
+    glUseProgram(pipeline.shaderProgram)
+    
     # Setting up the clear screen color
     glClearColor(0.15, 0.15, 0.15, 1.0)
+    # As we work in 3D, we need to check which part is in front,
+    # and which one is at the back
+    glEnable(GL_DEPTH_TEST)
+     # Enabling transparencies
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # Creating shapes on GPU memory
-    shapeQuad = bs.createRainbowQuad()
-    gpuQuad = es.GPUShape().initBuffers()
-    pipeline.setupVAO(gpuQuad)
-    gpuQuad.fillBuffers(shapeQuad.vertices, shapeQuad.indices, GL_STATIC_DRAW)
+    cube = Cube(pipeline, "0.1")
 
+    controller.set_shape(cube) # todo change with many shapes
 
     # initilize imgui context (see documentation)
     imgui.create_context()
     impl = GlfwRenderer(window)
 
-    # Connecting the callback function 'on_key' to handle keyboard events
-    # It is important to set the callback after the imgui setup
-    glfw.set_key_callback(window, controller.on_key)
+    # glfw will swap buffers as soon as possible
+    glfw.swap_interval(0) # TODO: buscar por qué
 
     locationX = 0.0
     locationY = 0.0
-    angle = 0.0
+    locationZ = 0.0
+    scaleX = 1.0
+    scaleY = 1.0
+    scaleZ = 1.0
+    angleX = 0.0
+    angleY = 0.0
+    angleZ = 0.0
     color = (1.0, 1.0, 1.0)
 
     while not glfw.window_should_close(window):
 
         impl.process_inputs()
         # Using GLFW to check for input events
-
         glfw.poll_events()
 
         # Filling or not the shapes depending on the controller state
@@ -80,19 +91,41 @@ if __name__ == "__main__":
         # imgui function
         impl.process_inputs()
 
-        locationX, locationY, angle, color = \
-            controller.transformGuiOverlay(locationX, locationY, angle, color)
+        # 3D transformation
+        locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
+            controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color)
+
+        # ilumination
+        La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation = \
+            setUpLightsDefault(pipeline)
+        viewPos = controller.eye[0], controller.eye[1], controller.eye[2]
+
+        #La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation =\
+        #    controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
 
         # Setting uniforms and drawing the Quad
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE,
-            np.matmul(
-                tr.translate(locationX, locationY, 0.0),
-                tr.rotationZ(angle)
-            )
+        rotateMatrix = np.matmul(
+            tr.rotationZ(angleZ),
+            tr.rotationY(angleY),
+            tr.rotationX(angleX)
         )
+
+        transformMatrix = np.matmul(
+                tr.translate(locationX, locationY, locationZ),
+                rotateMatrix,
+                tr.scale(scaleX, scaleY, scaleZ)
+            )
+        # the transform matrix
+        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE, transformMatrix)
+        
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
             color[0], color[1], color[2])
-        pipeline.drawCall(gpuQuad)
+        
+        view = tr.lookAt(controller.eye, controller.at, controller.up)
+        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
+        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
+
+        cube.draw(pipeline, transformMatrix)
 
         # Drawing the imgui texture over our drawing
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -102,7 +135,7 @@ if __name__ == "__main__":
         glfw.swap_buffers(window)
 
     # freeing GPU memory
-    gpuQuad.clear()
+    controller.clear()
 
     impl.shutdown()
     glfw.terminate()

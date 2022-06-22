@@ -1,45 +1,148 @@
 '''
 Code from ex_transform_imgui.py example
 '''
-import imgui
 import numpy as np
+import imgui
+import random
+import glfw
 
-class Controller:
-    fillPolygon = True
+import grafica.transformations as tr
+
+class Controller():
+
+    def __init__(self):
+        self.fillPolygon = True
+        self.scene = None
+        self.width = 1000
+        self.height = 800
+        self.eye = np.array([-2, 0, 0.1])
+        self.up = np.array([0, 0, 1])
+        self.at = np.array([1, 0, 0.1])
+        self.projection = tr.perspective(45, self.width/self.height, 0.1, 100)
+
+    @property
+    def mouseX(self):
+        # Getting the mouse location in opengl coordinates
+        mousePosX = 2 * (self.mousePos[0] - self.width/2) / self.width
+        return mousePosX
+    
+    @property
+    def mouseY(self):
+        # Getting the mouse location in opengl coordinates
+        mousePosY = 2 * (self.height/2 - self.mousePos[1]) / self.height
+        return mousePosY
+
+    def set_shape(self, shape):
+        self.scene = shape
+
+    def cursor_pos_callback(self, window, x, y):
+        #print("call back cursor")
+        self.mousePos = (x,y)
 
 
-    def on_key(window, key, scancode, action, mods):
+    def on_key(self, window, key, scancode, action, mods):
     
         if action != glfw.PRESS:
             return
-        
-        global controller
 
         if key == glfw.KEY_SPACE:
-            controller.fillPolygon = not controller.fillPolygon
+            self.fillPolygon = not self.fillPolygon
 
         elif key == glfw.KEY_ESCAPE:
             glfw.set_window_should_close(window, True)
+
+        ### perspective (thir camera)
+        elif key == glfw.KEY_1 and action == glfw.PRESS:
+            self.eye = np.array([-2, 0, 0.1])
+            self.at = np.array([1, 0, 0.1])
+            self.up = np.array([0, 0, 1])
+            self.projection = tr.perspective(45, self.width/self.height, 0.1, 100)
+
+        ### second perspective (from angle)
+        elif key == glfw.KEY_2 and action == glfw.PRESS:
+            self.eye = np.array([-4, -1, 0.3]) # esquina superior derecha
+            self.at = np.array([2, 2, -0.1]) # hacia abajo en diagonal
+            self.up = np.array([0, 0, 1])
+            self.projection = tr.perspective(80, self.width/self.height, 0.1, 100)
+
 
         else:
             print('Unknown key')
 
 
-    def transformGuiOverlay(self, locationX, locationY, angle, color):
-        
+    def lightGuiOverlay(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
         # start new frame context
         imgui.new_frame()
 
         # open new window context
-        imgui.begin("2D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
+        imgui.begin("Light Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
 
         # draw text label inside of current window
         imgui.text("Configuration sliders")
 
-        edited, locationX = imgui.slider_float("location X", locationX, -1.0, 1.0)
-        edited, locationY = imgui.slider_float("location Y", locationY, -1.0, 1.0)
-        edited, angle = imgui.slider_float("Angle", angle, -np.pi, np.pi)
+        # white light
+        edited, La = imgui.color_edit3("La", La[0], La[1], La[2])
+        edited, Ld = imgui.color_edit3("Ld", Ld[0], Ld[1], Ld[2])
+        edited, Ls = imgui.color_edit3("Ls", Ls[0], Ls[1], Ls[2])
+        # constants K
+        edited, Ka = imgui.color_edit3("Ka", Ka[0], Ka[1], Ka[2])
+        edited, Kd = imgui.color_edit3("Kd", Kd[0], Kd[1], Kd[2])
+        edited, Ks = imgui.color_edit3("Ks", Ks[0], Ks[1], Ks[2])
+        # light position
+        edited, lightPosX = imgui.slider_float("lightPosX", lightPos[0], -2, 2)
+        edited, lightPosY = imgui.slider_float("lightPosY", lightPos[1], -2, 2)
+        edited, lightPosZ = imgui.slider_float("lightPosZ", lightPos[2], -2, 2)
+        lightPos = lightPosX, lightPosY, lightPosZ
+        # view position
+        edited, viewPosX = imgui.slider_float("viewPosX", viewPos[0], -2, 2)
+        edited, viewPosY = imgui.slider_float("viewPosY", viewPos[1], -2, 2)
+        edited, viewPosZ = imgui.slider_float("viewPosZ", viewPos[2], -2, 2)
+        viewPos = viewPosX, viewPosY, viewPosZ
+
+        # shine
+        edited, shininess = imgui.slider_float("shininess", shininess, 0, 100)
+        # constants
+        edited, constantAttenuation = imgui.slider_float("constantAttenuation", constantAttenuation, 0, 1)
+        edited, linearAttenuation = imgui.slider_float("linearAttenuation", linearAttenuation, 0, 1)
+        edited, quadraticAttenuation = imgui.slider_float("quadraticAttenuation", quadraticAttenuation, 0, 1)
+
+        # close current window context
+        imgui.end()
+
+        # pass all drawing comands to the rendering pipeline
+        # and close frame context
+        imgui.render()
+        imgui.end_frame()
+
+        return La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
+
+    
+    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color):
+            
+        # start new frame context
+        imgui.new_frame()
+
+        # open new window context
+        imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
+
+        # draw text label inside of current window
+        imgui.text("Configuration sliders")
+
+        # position
+        edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
+        edited, locationY = imgui.slider_float("location Y", locationY, -0.5, 0.5)
+        edited, locationZ = imgui.slider_float("location Z", locationZ, -0.5, 0.5)
+        # scale
+        edited, scaleX = imgui.slider_float("scale X", scaleX, 0, 5)
+        edited, scaleY = imgui.slider_float("scale Y", scaleY, 0, 5)
+        edited, scaleZ = imgui.slider_float("scale Z", scaleZ, 0, 5)
+        # rotations
+        edited, angleX = imgui.slider_float("Angle X", angleX, -np.pi, np.pi)
+        edited, angleY = imgui.slider_float("Angle Y", angleY, -np.pi, np.pi)
+        edited, angleZ = imgui.slider_float("Angle Z", angleZ, -np.pi, np.pi)
+        # color
         edited, color = imgui.color_edit3("Modulation Color", color[0], color[1], color[2])
+        
         if imgui.button("Random Modulation Color!"):
             color = (random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0))
         imgui.same_line()
@@ -58,5 +161,7 @@ class Controller:
         imgui.render()
         imgui.end_frame()
 
-        return locationX, locationY, angle, color
+        return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
+    def clear(self):
+        self.scene.clear()
