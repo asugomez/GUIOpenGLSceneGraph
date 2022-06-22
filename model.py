@@ -39,6 +39,7 @@ class Cube(BasicShape):
         super(Cube, self).__init__(pipeline)
         shape = bs.createColorCube(self.r, self.g, self.b) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
+        self.gpu = gpuCube
         cube = sg.SceneGraphNode('cube_' + nodeNumber) # the nodenumber will help to have a hierarchy
         cube.childs += [gpuCube]
         self.model = cube

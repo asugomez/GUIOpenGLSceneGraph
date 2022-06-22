@@ -19,10 +19,10 @@ if __name__ == "__main__":
     if not glfw.init():
         glfw.set_window_should_close(window, True)
 
+    controller = Controller()
+
     width = 1000
     height = 800
-
-    controller = Controller()
 
     window = glfw.create_window(width, height, "Solid DIY", None, None)
 
@@ -32,17 +32,13 @@ if __name__ == "__main__":
 
     glfw.make_context_current(window)
 
-    # Connecting the callback function 'on_key' to handle keyboard events
-    glfw.set_key_callback(window, controller.on_key)
-    # Connecting the callback function 'cursor_pos_callback' to handle mouse events
-    glfw.set_cursor_pos_callback(window, controller.cursor_pos_callback)
-
     # Creating our shader program and telling OpenGL to use it
-    pipeline = ls.SimplePhongShaderProgram()
+    pipeline = ls.SimplePhongTransformShaderProgram()
     glUseProgram(pipeline.shaderProgram)
     
     # Setting up the clear screen color
     glClearColor(0.15, 0.15, 0.15, 1.0)
+
     # As we work in 3D, we need to check which part is in front,
     # and which one is at the back
     glEnable(GL_DEPTH_TEST)
@@ -55,12 +51,17 @@ if __name__ == "__main__":
 
     controller.set_shape(cube) # todo change with many shapes
 
-    # initilize imgui context (see documentation)
+    # initiliaze imgui context (see documentation)
     imgui.create_context()
     impl = GlfwRenderer(window)
 
+    # Connecting the callback function 'on_key' to handle keyboard events
+    glfw.set_key_callback(window, controller.on_key)
+    # Connecting the callback function 'cursor_pos_callback' to handle mouse events
+    glfw.set_cursor_pos_callback(window, controller.cursor_pos_callback)
+
     # glfw will swap buffers as soon as possible
-    glfw.swap_interval(0) # TODO: buscar por qué
+    #glfw.swap_interval(0) # TODO: buscar por qué
 
     locationX = 0.0
     locationY = 0.0
@@ -74,10 +75,10 @@ if __name__ == "__main__":
     color = (1.0, 1.0, 1.0)
 
     while not glfw.window_should_close(window):
-
-        impl.process_inputs()
         # Using GLFW to check for input events
         glfw.poll_events()
+        # imgui function
+        impl.process_inputs()
 
         # Filling or not the shapes depending on the controller state
         if (controller.fillPolygon):
@@ -86,10 +87,7 @@ if __name__ == "__main__":
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         # Clearing the screen in both, color and depth
-        glClear(GL_COLOR_BUFFER_BIT)
-
-        # imgui function
-        impl.process_inputs()
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # 3D transformation
         locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
@@ -104,7 +102,7 @@ if __name__ == "__main__":
         #    controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
 
         # Setting uniforms and drawing the Quad
-        rotateMatrix = np.matmul(
+        rotationMatrix = np.matmul(
             tr.rotationZ(angleZ),
             tr.rotationY(angleY),
             tr.rotationX(angleX)
@@ -112,18 +110,22 @@ if __name__ == "__main__":
 
         transformMatrix = np.matmul(
                 tr.translate(locationX, locationY, locationZ),
-                rotateMatrix,
+                rotationMatrix,
                 tr.scale(scaleX, scaleY, scaleZ)
             )
-        # the transform matrix
-        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE, transformMatrix)
         
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
             color[0], color[1], color[2])
         
         view = tr.lookAt(controller.eye, controller.at, controller.up)
+        glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"), controller.eye[0], controller.eye[1], controller.eye[2])
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
+        
+         # Setting uniforms and drawing the Quad
+        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE,
+            transformMatrix
+        )
 
         cube.draw(pipeline, transformMatrix)
 
@@ -135,7 +137,7 @@ if __name__ == "__main__":
         glfw.swap_buffers(window)
 
     # freeing GPU memory
-    controller.clear()
+    #controller.clear()
 
     impl.shutdown()
     glfw.terminate()

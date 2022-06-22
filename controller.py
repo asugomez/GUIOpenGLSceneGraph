@@ -53,6 +53,7 @@ class Controller():
 
         ### perspective (thir camera)
         elif key == glfw.KEY_1 and action == glfw.PRESS:
+            print("click on 1")
             self.eye = np.array([-2, 0, 0.1])
             self.at = np.array([1, 0, 0.1])
             self.up = np.array([0, 0, 1])
@@ -60,11 +61,18 @@ class Controller():
 
         ### second perspective (from angle)
         elif key == glfw.KEY_2 and action == glfw.PRESS:
+            print("click on 2")
             self.eye = np.array([-4, -1, 0.3]) # esquina superior derecha
             self.at = np.array([2, 2, -0.1]) # hacia abajo en diagonal
             self.up = np.array([0, 0, 1])
             self.projection = tr.perspective(80, self.width/self.height, 0.1, 100)
 
+        # save code
+        elif key == glfw.KEY_3 and action == glfw.PRESS:
+            print("click on 3")
+            #f = open("./demofile2.txt", "w")
+            #f.write("Now the file has more content!")
+            #f.close()
 
         else:
             print('Unknown key')
