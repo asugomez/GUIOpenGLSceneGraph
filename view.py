@@ -33,7 +33,7 @@ if __name__ == "__main__":
     glfw.make_context_current(window)
 
     # Creating our shader program and telling OpenGL to use it
-    pipeline = ls.SimplePhongTransformShaderProgram()
+    pipeline = ls.SimplePhongShaderProgram()
     glUseProgram(pipeline.shaderProgram)
     
     # Setting up the clear screen color
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                 tr.scale(scaleX, scaleY, scaleZ)
             )
         
-        glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
+        glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"), #modulationColor
             color[0], color[1], color[2])
         
         view = tr.lookAt(controller.eye, controller.at, controller.up)
@@ -122,11 +122,11 @@ if __name__ == "__main__":
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
         
-         # Setting uniforms and drawing the Quad
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE,
-            transformMatrix
-        )
-
+        # Setting uniforms and drawing the Quad
+        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE,
+        #    transformMatrix
+        #)
+        # Setting up the model
         cube.draw(pipeline, transformMatrix)
 
         # Drawing the imgui texture over our drawing

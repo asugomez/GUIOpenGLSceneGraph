@@ -505,6 +505,7 @@ class SimpleTextureGouraudShaderProgram():
 
 
 class SimplePhongShaderProgram:
+    # edit: modulationColor in fragment shader
 
     def __init__(self):
         vertex_shader = """
@@ -553,6 +554,8 @@ class SimplePhongShaderProgram:
             uniform float constantAttenuation;
             uniform float linearAttenuation;
             uniform float quadraticAttenuation;
+            
+            uniform vec3 modulationColor;
 
             void main()
             {
@@ -580,7 +583,7 @@ class SimplePhongShaderProgram:
                     + quadraticAttenuation * distToLight * distToLight;
                     
                 vec3 result = (ambient + ((diffuse + specular) / attenuation)) * fragOriginalColor;
-                fragColor = vec4(result, 1.0);
+                fragColor = vec4(modulationColor, 1.0f) * vec4(result, 1.0);
             }
             """
 
@@ -681,6 +684,8 @@ class SimplePhongTransformShaderProgram:
             uniform float linearAttenuation;
             uniform float quadraticAttenuation;
 
+            uniform vec3 modulationColor;
+
             void main()
             {
                 // ambient
@@ -707,7 +712,7 @@ class SimplePhongTransformShaderProgram:
                     + quadraticAttenuation * distToLight * distToLight;
                     
                 vec3 result = (ambient + ((diffuse + specular) / attenuation)) * fragOriginalColor;
-                fragColor = vec4(result, 1.0);
+                fragColor = vec4(modulationColor, 1.0f) * vec4(result, 1.0);
             }
             """
 

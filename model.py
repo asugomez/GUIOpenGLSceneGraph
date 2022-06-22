@@ -46,7 +46,7 @@ class Cube(BasicShape):
 
     def draw(self, pipeline, transform = tr.identity()):
         self.model.transform = transform
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, tr.identity())
+        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
     def clear(self):
