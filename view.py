@@ -7,9 +7,12 @@ from imgui.integrations.glfw import GlfwRenderer
 from OpenGL.GL import *
 import grafica.transformations as tr
 import grafica.lighting_shaders as ls
+import grafica.easy_shaders as es
+import grafica.basic_shapes as bs
+import grafica.scene_graph as sg
 from ModulationTransformShaderProgram import ModulationTransformShaderProgram
 from controller import Controller
-from model import Cube
+from model import Cube, create_gpu
 from utils import *
 
 
@@ -24,7 +27,7 @@ if __name__ == "__main__":
     width = 1000
     height = 800
 
-    window = glfw.create_window(width, height, "Solid DIY", None, None)
+    window = glfw.create_window(width, height, "Scene Graph Node", None, None)
 
     if not window:
         glfw.terminate()
@@ -66,13 +69,13 @@ if __name__ == "__main__":
     locationX = 0.0
     locationY = 0.0
     locationZ = 0.0
-    scaleX = 1.0
-    scaleY = 1.0
+    scaleX = 0.5
+    scaleY = 0.5
     scaleZ = 1.0
     angleX = 0.0
     angleY = 0.0
     angleZ = 0.0
-    color = (1.0, 1.0, 1.0)
+    color = (0.5, 0.5, 0.5)
 
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
@@ -102,16 +105,24 @@ if __name__ == "__main__":
         #    controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
 
         # Setting uniforms and drawing the Quad
-        rotationMatrix = np.matmul(
-            tr.rotationZ(angleZ),
+        rotationMatrixXY = np.matmul(
             tr.rotationY(angleY),
-            tr.rotationX(angleX)
+            tr.rotationX(angleX),
+        )
+
+        rotationMatrixXYZ = np.matmul(
+            tr.rotationZ(angleZ),
+            rotationMatrixXY
+        )
+
+        rotationAndScale = np.matmul(
+            rotationMatrixXYZ,
+            tr.scale(scaleX, scaleY, scaleZ)
         )
 
         transformMatrix = np.matmul(
                 tr.translate(locationX, locationY, locationZ),
-                rotationMatrix,
-                tr.scale(scaleX, scaleY, scaleZ)
+                rotationAndScale
             )
         
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"), #modulationColor
@@ -121,11 +132,7 @@ if __name__ == "__main__":
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"), controller.eye[0], controller.eye[1], controller.eye[2])
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
-        
-        # Setting uniforms and drawing the Quad
-        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "transform"), 1, GL_TRUE,
-        #    transformMatrix
-        #)
+  
         # Setting up the model
         cube.draw(pipeline, transformMatrix)
 

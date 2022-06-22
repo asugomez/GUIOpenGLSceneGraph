@@ -37,7 +37,7 @@ class Cube(BasicShape):
 
     def __init__(self, pipeline, nodeNumber):
         super(Cube, self).__init__(pipeline)
-        shape = bs.createColorCube(self.r, self.g, self.b) #WithNormal
+        shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
         self.gpu = gpuCube
         cube = sg.SceneGraphNode('cube_' + nodeNumber) # the nodenumber will help to have a hierarchy
@@ -46,7 +46,8 @@ class Cube(BasicShape):
 
     def draw(self, pipeline, transform = tr.identity()):
         self.model.transform = transform
-        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
+        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
+        #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
     def clear(self):
