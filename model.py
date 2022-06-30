@@ -40,9 +40,10 @@ class Cube(BasicShape):
         shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
         self.gpu = gpuCube
-        cube = sg.SceneGraphNode('cube_' + nodeNumber) # the nodenumber will help to have a hierarchy
+        cube = sg.SceneGraphNode('cube_' + str(nodeNumber)) # the nodenumber will help to have a hierarchy
         cube.childs += [gpuCube]
         self.model = cube
+        self.nodeNumber = nodeNumber
 
     def draw(self, pipeline, transform = tr.identity()):
         self.model.transform = transform
@@ -50,10 +51,51 @@ class Cube(BasicShape):
         #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
+
+
     def clear(self):
         self.model.clear()
 
     # def addNode()
 
-#class AllModel():
+class AllModel(object):
+
+    def __init__(self, cube):
+        # se comeinza con un cubo básico
+        self.last_child_number = int(cube.nodeNumber)
+        first_cube = sg.SceneGraphNode("cube")
+        first_cube.childs += [cube.model]
+        self.model = first_cube
+        #self.cubes = cubepu
+
+    def addChild(self, pipeline, nodenumber):# buscar por indice
+        # find node
+        #target_node = sg.findNode(node, 'cube_'+str(nodenumber))
+        #if target_node == None:
+        #    print("No node founded!")
+        #    return
+
+        self.last_child_number += 1 # cada nodo está indexado
+        newCube = Cube(pipeline, self.last_child_number)
+        newCube.model.transform = tr.translate(0.3, 0.2, 0.4)
+        #newCube.model.childs += [newCube.gpu]
+        #print("type: ", type(newCube.model))
+        self.model.childs += [newCube.model]
+        # update last child numebr
+
+    def draw(self, pipeline, transform = tr.identity()):
+        self.model.transform = transform
+        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
+        #sg.drawSceneGraphNode(self.model, pipeline, "model")
+        sg.drawSceneGraphNode(self.model, pipeline, "model")
+
+
+    def clear(self):
+        self.model.clear()
+
+    
+
+
+
+
 

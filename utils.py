@@ -35,15 +35,9 @@ def setUpLightsDefault(pipeline):
 
     return La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
-def saveSceneGraphNode():
+def saveSceneGraphNode(sgNode):
     """ 
     Save the graph node into a python file
     """
-    pass
-
-def createCube():
-    """ 
-    Add a cube child to the node n
-
-    """
-    pass
+    print(sgNode)
+    

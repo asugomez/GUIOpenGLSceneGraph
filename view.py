@@ -12,7 +12,7 @@ import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
 from ModulationTransformShaderProgram import ModulationTransformShaderProgram
 from controller import Controller
-from model import Cube, create_gpu
+from model import Cube, create_gpu, AllModel
 from utils import *
 
 
@@ -52,9 +52,11 @@ if __name__ == "__main__":
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # Creating shapes on GPU memory
-    cube = Cube(pipeline, "0.1")
+    initial_cube = Cube(pipeline, "1")
+    all_model = AllModel(initial_cube)
 
-    controller.set_shape(cube) # todo change with many shapes
+
+    controller.set_shape(all_model) # todo change with many shapes
 
     # initiliaze imgui context (see documentation)
     imgui.create_context()
@@ -102,7 +104,7 @@ if __name__ == "__main__":
 
         # 3D transformation
         locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
-            controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color)
+            controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, controller.scene.model)
         
         #impl.render(imgui.get_draw_data()) 
 
@@ -113,7 +115,7 @@ if __name__ == "__main__":
         
         #impl.render(imgui.get_draw_data()) 
 
-        #controller.sceneGraphGuiOverlay()
+        #controller.sceneGraphGuiOverlay(pipeline)
 
         #impl.render(imgui.get_draw_data()) 
 
@@ -148,7 +150,7 @@ if __name__ == "__main__":
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
   
         # Setting up the model
-        cube.draw(pipeline, transformMatrix)
+        all_model.draw(pipeline, transformMatrix)
 
         # Drawing the imgui texture over our drawing
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)

@@ -36,6 +36,9 @@ class Controller():
     def set_shape(self, shape):
         self.scene = shape
 
+    def add_shape(self, pipeline, nodenumber):
+        self.scene.addChild(pipeline, nodenumber)
+
     def cursor_pos_callback(self, window, x, y):
         #print("call back cursor")
         self.mousePos = (x,y)
@@ -78,16 +81,32 @@ class Controller():
         else:
             print('Unknown key')
 
-    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color):
+    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, sgnode):
             
         # start new frame context
-        imgui.new_frame()        
+        imgui.new_frame()   
+
+
+        # crear un arbol para pdoer seleccionar el nodo 
 
         # open new window context
         imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
 
         # draw text label inside of current window
         imgui.text("Configuration sliders")
+
+        #imgui.treee
+
+        if imgui.button("Save"):
+            print("click on save")
+            saveSceneGraphNode(sgnode)
+
+        if imgui.button("Add"):
+            # check the node
+            # add a child to the node
+            print("click on add")
+            nodenumber = 1
+            self.add_shape(pipeline, nodenumber)
 
         # position
         edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
@@ -171,7 +190,7 @@ class Controller():
 
         return La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
-    def sceneGraphGuiOverlay(self):
+    def sceneGraphGuiOverlay(self, pipeline):
         # start new frame context
         imgui.new_frame()
 
@@ -188,7 +207,8 @@ class Controller():
             # check the node
             # add a child to the node
             print("click on add")
-            createCube()
+            nodenumber = 1
+            self.add_shape(pipeline, nodenumber)
 
         # close current window context
         imgui.end()
