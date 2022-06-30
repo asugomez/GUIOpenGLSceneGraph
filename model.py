@@ -54,3 +54,6 @@ class Cube(BasicShape):
         self.model.clear()
 
     # def addNode()
+
+#class AllModel():
+

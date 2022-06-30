@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     controller = Controller()
 
-    width = 1000
+    width = 1200
     height = 800
 
     window = glfw.create_window(width, height, "Scene Graph Node", None, None)
@@ -32,6 +32,8 @@ if __name__ == "__main__":
     if not window:
         glfw.terminate()
         glfw.set_window_should_close(window, True)
+        print("Could not initialize Window")
+        exit(1)
 
     glfw.make_context_current(window)
 
@@ -64,18 +66,24 @@ if __name__ == "__main__":
     glfw.set_cursor_pos_callback(window, controller.cursor_pos_callback)
 
     # glfw will swap buffers as soon as possible
-    #glfw.swap_interval(0) # TODO: buscar por qué
+    glfw.swap_interval(0) # TODO: buscar por qué
 
     locationX = 0.0
     locationY = 0.0
     locationZ = 0.0
     scaleX = 0.5
     scaleY = 0.5
-    scaleZ = 1.0
-    angleX = 0.0
-    angleY = 0.0
-    angleZ = 0.0
+    scaleZ = 0.5
+    angleX = 0.4
+    angleY = -0.6
+    angleZ = 0.4
     color = (0.5, 0.5, 0.5)
+
+    # ilumination
+    La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation = \
+        setUpLightsDefault(pipeline)
+
+    viewPos = controller.eye[0], controller.eye[1], controller.eye[2]
 
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
@@ -95,14 +103,20 @@ if __name__ == "__main__":
         # 3D transformation
         locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
             controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color)
+        
+        #impl.render(imgui.get_draw_data()) 
 
-        # ilumination
-        La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation = \
-            setUpLightsDefault(pipeline)
-        viewPos = controller.eye[0], controller.eye[1], controller.eye[2]
+        ###############
 
         #La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation =\
         #    controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
+        
+        #impl.render(imgui.get_draw_data()) 
+
+        #controller.sceneGraphGuiOverlay()
+
+        #impl.render(imgui.get_draw_data()) 
+
 
         # Setting uniforms and drawing the Quad
         rotationMatrixXY = np.matmul(

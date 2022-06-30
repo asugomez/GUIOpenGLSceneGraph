@@ -34,3 +34,16 @@ def setUpLightsDefault(pipeline):
     glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "quadraticAttenuation"), quadraticAttenuation)
 
     return La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
+
+def saveSceneGraphNode():
+    """ 
+    Save the graph node into a python file
+    """
+    pass
+
+def createCube():
+    """ 
+    Add a cube child to the node n
+
+    """
+    pass

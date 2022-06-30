@@ -2,11 +2,12 @@
 Code from ex_transform_imgui.py example
 '''
 import numpy as np
-import imgui
+import imgui # see documentation here: https://github.com/ocornut/imgui#demo 
 import random
 import glfw
 
 import grafica.transformations as tr
+from utils import saveSceneGraphNode, createCube
 
 class Controller():
 
@@ -77,8 +78,54 @@ class Controller():
         else:
             print('Unknown key')
 
+    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color):
+            
+        # start new frame context
+        imgui.new_frame()        
+
+        # open new window context
+        imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
+
+        # draw text label inside of current window
+        imgui.text("Configuration sliders")
+
+        # position
+        edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
+        edited, locationY = imgui.slider_float("location Y", locationY, -0.5, 0.5)
+        edited, locationZ = imgui.slider_float("location Z", locationZ, -0.5, 0.5)
+        # scale
+        edited, scaleX = imgui.slider_float("scale X", scaleX, 0, 5)
+        edited, scaleY = imgui.slider_float("scale Y", scaleY, 0, 5)
+        edited, scaleZ = imgui.slider_float("scale Z", scaleZ, 0, 5)
+        # rotations
+        edited, angleX = imgui.slider_float("Angle X", angleX, -np.pi, np.pi)
+        edited, angleY = imgui.slider_float("Angle Y", angleY, -np.pi, np.pi)
+        edited, angleZ = imgui.slider_float("Angle Z", angleZ, -np.pi, np.pi)
+        # color
+        edited, color = imgui.color_edit3("Modulation Color", color[0], color[1], color[2])
+        
+        if imgui.button("Random Modulation Color!"):
+            color = (random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0))
+        imgui.same_line()
+        if imgui.button("White Modulation Color"):
+            color = (1.0, 1.0, 1.0)
+
+        edited, checked = imgui.checkbox("wireframe", not self.fillPolygon)
+        if edited:
+            self.fillPolygon = not checked
+
+        # close current window context
+        imgui.end()
+
+        # pass all drawing comands to the rendering pipeline
+        # and close frame context
+        imgui.render()
+        imgui.end_frame()
+
+        return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
     def lightGuiOverlay(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
+        
         # start new frame context
         imgui.new_frame()
 
@@ -124,42 +171,24 @@ class Controller():
 
         return La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
-    
-    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color):
-            
+    def sceneGraphGuiOverlay(self):
         # start new frame context
         imgui.new_frame()
 
         # open new window context
-        imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
+        imgui.begin("Scene graph", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
 
         # draw text label inside of current window
-        imgui.text("Configuration sliders")
+        #imgui.text("Configuration sliders")
+        if imgui.button("Save"):
+            print("click on save")
+            saveSceneGraphNode()
 
-        # position
-        edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
-        edited, locationY = imgui.slider_float("location Y", locationY, -0.5, 0.5)
-        edited, locationZ = imgui.slider_float("location Z", locationZ, -0.5, 0.5)
-        # scale
-        edited, scaleX = imgui.slider_float("scale X", scaleX, 0, 5)
-        edited, scaleY = imgui.slider_float("scale Y", scaleY, 0, 5)
-        edited, scaleZ = imgui.slider_float("scale Z", scaleZ, 0, 5)
-        # rotations
-        edited, angleX = imgui.slider_float("Angle X", angleX, -np.pi, np.pi)
-        edited, angleY = imgui.slider_float("Angle Y", angleY, -np.pi, np.pi)
-        edited, angleZ = imgui.slider_float("Angle Z", angleZ, -np.pi, np.pi)
-        # color
-        edited, color = imgui.color_edit3("Modulation Color", color[0], color[1], color[2])
-        
-        if imgui.button("Random Modulation Color!"):
-            color = (random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0))
-        imgui.same_line()
-        if imgui.button("White Modulation Color"):
-            color = (1.0, 1.0, 1.0)
-
-        edited, checked = imgui.checkbox("wireframe", not self.fillPolygon)
-        if edited:
-            self.fillPolygon = not checked
+        if imgui.button("Add"):
+            # check the node
+            # add a child to the node
+            print("click on add")
+            createCube()
 
         # close current window context
         imgui.end()
@@ -169,7 +198,6 @@ class Controller():
         imgui.render()
         imgui.end_frame()
 
-        return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
     def clear(self):
         self.scene.clear()
