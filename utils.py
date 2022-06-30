@@ -1,4 +1,6 @@
 from OpenGL.GL import *
+import grafica.gpu_shape as gs
+
 
 def setUpLightsDefault(pipeline):
     # Setting all uniform shader variables 
@@ -35,9 +37,51 @@ def setUpLightsDefault(pipeline):
 
     return La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
-def saveSceneGraphNode(sgNode):
+def saveSceneGraphNode(node):
     """ 
     Save the graph node into a python file
     """
-    print(sgNode)
+    print("sgname: ", node.name)
+    print(len(node.childs))
+    # All childs are checked for the requested name
+    #for child in sgNode.childs:
+    #    print(child.name)
+    #for child in node.childs:
+    #    if child != None:
+    #        return foundNode
+    if len(node.childs) == 1 and isinstance(node.childs[0], gs.GPUShape):
+        print("name: ",node.name)
+        print("transform: ", node.transform)
+        # TODO: ver algun arbol mas complejo como ejemplo
+        # shape = 
+        # gpu_cube_3 = 
+        # cube_3 = sg.SceneGraphNode(node.name)
+        # cube_3.transform = node.transform
+        # cube_3.childs += [gpu]
+
+    # If the child node is not a leaf, it MUST be a SceneGraphNode,
+    # so this draw function is called recursively
+    else:
+        for child in node.childs:
+            saveSceneGraphNode(child)
+
     
+
+def findNode(node, name):
+    
+    # The name was not found in this path
+    if isinstance(node, gs.GPUShape):
+        return None
+
+    # This is the requested node
+    if node.name == name:
+        return node
+    
+    # All childs are checked for the requested name
+    for child in node.childs:
+        foundNode = findNode(child, name)
+        if foundNode != None:
+            return foundNode
+
+    # No child of this node had the requested name
+    return None

@@ -7,7 +7,7 @@ import random
 import glfw
 
 import grafica.transformations as tr
-from utils import saveSceneGraphNode, createCube
+from utils import saveSceneGraphNode
 
 class Controller():
 

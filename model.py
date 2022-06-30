@@ -5,6 +5,7 @@ import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
 import grafica.transformations as tr
 import grafica.easy_shaders as es
+import random
 
 
 def create_gpu(shape, pipeline):
@@ -63,6 +64,7 @@ class AllModel(object):
     def __init__(self, cube):
         # se comeinza con un cubo básico
         self.last_child_number = int(cube.nodeNumber)
+        print("cube last number: ", self.last_child_number)
         first_cube = sg.SceneGraphNode("cube")
         first_cube.childs += [cube.model]
         self.model = first_cube
@@ -77,7 +79,9 @@ class AllModel(object):
 
         self.last_child_number += 1 # cada nodo está indexado
         newCube = Cube(pipeline, self.last_child_number)
-        newCube.model.transform = tr.translate(0.3, 0.2, 0.4)
+        posy = random.uniform(-0.5,0.5)
+        posz = random.uniform(-0.5,0.5)
+        newCube.model.transform = tr.translate(0.3, posy, posz)
         #newCube.model.childs += [newCube.gpu]
         #print("type: ", type(newCube.model))
         self.model.childs += [newCube.model]

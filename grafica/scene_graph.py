@@ -104,3 +104,20 @@ def drawSceneGraphNode(node, pipeline, transformName, parentTransform=tr.identit
         for child in node.childs:
             drawSceneGraphNode(child, pipeline, transformName, newTransform)
 
+def printSceneGraphNode(node, pipeline):
+    assert(isinstance(node, SceneGraphNode))
+
+    # If the child node is a leaf, it should be a GPUShape.
+    # Hence, it can be drawn with drawCall
+    if len(node.childs) == 1 and isinstance(node.childs[0], gs.GPUShape):
+        leaf = node.childs[0]
+        glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, transformName), 1, GL_TRUE, newTransform)
+        pipeline.drawCall(leaf)
+
+    # If the child node is not a leaf, it MUST be a SceneGraphNode,
+    # so this draw function is called recursively
+    else:
+        for child in node.childs:
+            drawSceneGraphNode(child, pipeline, transformName, newTransform)
+
+
