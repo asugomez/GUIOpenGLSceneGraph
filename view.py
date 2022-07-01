@@ -10,7 +10,6 @@ import grafica.lighting_shaders as ls
 import grafica.easy_shaders as es
 import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
-from ModulationTransformShaderProgram import ModulationTransformShaderProgram
 from controller import Controller
 from model import Cube, create_gpu, AllModel
 from utils import *
@@ -52,7 +51,7 @@ if __name__ == "__main__":
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
     # Creating shapes on GPU memory
-    initial_cube = Cube(pipeline, "1")
+    initial_cube = Cube(pipeline)
     all_model = AllModel(initial_cube)
 
 
@@ -102,23 +101,20 @@ if __name__ == "__main__":
         # Clearing the screen in both, color and depth
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        impl.process_inputs()
+        imgui.new_frame()
         # 3D transformation
         locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
             controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, controller.scene.model)
+        # ilumination
+        La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation =\
+            controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
         
-        #impl.render(imgui.get_draw_data()) 
-
-        ###############
-
-        #La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation =\
-        #    controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
+        setUpLights(pipeline, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
         
-        #impl.render(imgui.get_draw_data()) 
+        controller.sceneGraphGuiOverlay(pipeline)
 
-        #controller.sceneGraphGuiOverlay(pipeline)
-
-        #impl.render(imgui.get_draw_data()) 
-
+        imgui.render()
 
         # Setting uniforms and drawing the Quad
         rotationMatrixXY = np.matmul(

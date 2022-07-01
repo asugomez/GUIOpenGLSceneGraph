@@ -82,31 +82,10 @@ class Controller():
             print('Unknown key')
 
     def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, sgnode):
-            
-        # start new frame context
-        imgui.new_frame()   
-
-
-        # crear un arbol para pdoer seleccionar el nodo 
-
         # open new window context
         imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
-
-        # draw text label inside of current window
-        imgui.text("Configuration sliders")
-
         #imgui.treee
-
-        if imgui.button("Save"):
-            print("click on save")
-            saveSceneGraphNode(sgnode)
-
-        if imgui.button("Add"):
-            # check the node
-            # add a child to the node
-            print("click on add")
-            nodenumber = 1
-            self.add_shape(pipeline, nodenumber)
+        imgui.text("Transformations and constants")
 
         # position
         edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
@@ -136,23 +115,15 @@ class Controller():
         # close current window context
         imgui.end()
 
-        # pass all drawing comands to the rendering pipeline
-        # and close frame context
-        imgui.render()
-        imgui.end_frame()
-
         return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
+
     def lightGuiOverlay(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
-        
-        # start new frame context
-        imgui.new_frame()
+        # window position
+        imgui.set_next_window_position(0, 400)
 
         # open new window context
         imgui.begin("Light Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
-
-        # draw text label inside of current window
-        imgui.text("Configuration sliders")
 
         # white light
         edited, La = imgui.color_edit3("La", La[0], La[1], La[2])
@@ -183,16 +154,12 @@ class Controller():
         # close current window context
         imgui.end()
 
-        # pass all drawing comands to the rendering pipeline
-        # and close frame context
-        imgui.render()
-        imgui.end_frame()
-
         return La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
     def sceneGraphGuiOverlay(self, pipeline):
-        # start new frame context
-        imgui.new_frame()
+        # window position
+        imgui.set_next_window_position(800, 0)
+        #imgui.set_next_window_size(300, 90)
 
         # open new window context
         imgui.begin("Scene graph", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
@@ -201,22 +168,16 @@ class Controller():
         #imgui.text("Configuration sliders")
         if imgui.button("Save"):
             print("click on save")
-            saveSceneGraphNode()
-
+            saveSceneGraphNode(sgnode)
+        imgui.same_line()
         if imgui.button("Add"):
             # check the node
             # add a child to the node
             print("click on add")
             nodenumber = 1
             self.add_shape(pipeline, nodenumber)
-
         # close current window context
         imgui.end()
-
-        # pass all drawing comands to the rendering pipeline
-        # and close frame context
-        imgui.render()
-        imgui.end_frame()
 
 
     def clear(self):

@@ -5,8 +5,10 @@ import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
 import grafica.transformations as tr
 import grafica.easy_shaders as es
+import grafica.gpu_shape as gs
 import random
 
+count_cube = 0
 
 def create_gpu(shape, pipeline):
     gpu = es.GPUShape().initBuffers()
@@ -36,15 +38,17 @@ class BasicShape(ABC):
 
 class Cube(BasicShape):
 
-    def __init__(self, pipeline, nodeNumber):
+    def __init__(self, pipeline):
         super(Cube, self).__init__(pipeline)
+        global count_cube
+        count_cube += 1
+        self.nodeNumber = count_cube
         shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
         self.gpu = gpuCube
-        cube = sg.SceneGraphNode('cube_' + str(nodeNumber)) # the nodenumber will help to have a hierarchy
+        cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
         cube.childs += [gpuCube]
         self.model = cube
-        self.nodeNumber = nodeNumber
 
     def draw(self, pipeline, transform = tr.identity()):
         self.model.transform = transform
@@ -52,6 +56,14 @@ class Cube(BasicShape):
         #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
+    def addChild(self, pipeline):
+        print("add child in cube")
+        newCube = Cube(pipeline)
+        posy = random.uniform(-0.5,0.5)
+        posz = random.uniform(-0.5,0.5)
+        newCube.model.transform = tr.translate(0.3, posy, posz)
+        print("hihi: ", type(newCube.model))
+        self.model.childs += [newCube.model]
 
 
     def clear(self):
@@ -63,34 +75,31 @@ class AllModel(object):
 
     def __init__(self, cube):
         # se comeinza con un cubo básico
-        self.last_child_number = int(cube.nodeNumber)
-        print("cube last number: ", self.last_child_number)
+        #self.last_child_number = int(cube.nodeNumber)
+        #print("cube last number: ", self.last_child_number)
         first_cube = sg.SceneGraphNode("cube")
         first_cube.childs += [cube.model]
         self.model = first_cube
-        #self.cubes = cubepu
 
-    def addChild(self, pipeline, nodenumber):# buscar por indice
-        # find node
-        #target_node = sg.findNode(node, 'cube_'+str(nodenumber))
-        #if target_node == None:
-        #    print("No node founded!")
-        #    return
-
-        self.last_child_number += 1 # cada nodo está indexado
-        newCube = Cube(pipeline, self.last_child_number)
+    def addChild(self, pipeline, nodenumber=1):# buscar por indice
+        node = sg.findNode(self.model, "cube_"+str(nodenumber))
+        if node == None:
+            print("No node founded to add child")
+            return
+        print("the node founded: ", node)
+        print("the node founded: ", node.name)
+        newCube = Cube(pipeline)
         posy = random.uniform(-0.5,0.5)
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
-        #newCube.model.childs += [newCube.gpu]
-        #print("type: ", type(newCube.model))
+        print(type(newCube.model))
+        
+        #node.childs += [newCube.model]
         self.model.childs += [newCube.model]
-        # update last child numebr
+
 
     def draw(self, pipeline, transform = tr.identity()):
         self.model.transform = transform
-        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
-        #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
 
@@ -98,6 +107,30 @@ class AllModel(object):
         self.model.clear()
 
     
+def addChild(node, name, pipeline):
+    
+    # The name was not found in this path
+    if isinstance(node, gs.GPUShape):
+        return None
+
+    # This is the requested node
+    if node.name == name:
+        print("ime here")
+        newCube = Cube(pipeline)
+        posy = random.uniform(-0.5,0.5)
+        posz = random.uniform(-0.5,0.5)
+        newCube.model.transform = tr.translate(0.3, posy, posz)
+        print(type(newCube.model))
+        node.childs += [newCube.model]
+        return
+    
+    # All childs are checked for the requested name
+    for child in node.childs:
+        print("hello")
+        foundNode = addChild(child, name, pipeline)
+
+    # No child of this node had the requested name
+    return None
 
 
 

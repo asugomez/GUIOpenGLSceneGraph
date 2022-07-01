@@ -37,6 +37,26 @@ def setUpLightsDefault(pipeline):
 
     return La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
+def setUpLights(pipeline, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
+    # White light in all components: ambient, diffuse and specular.
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "La"), *La)
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Ld"), *Ld )
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Ls"), *Ls)
+
+    # Object is barely visible at only ambient. Bright white for diffuse and specular components.
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Ka"), *Ka)
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Kd"), *Kd)
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Ks"), *Ks)
+    
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "lightPosition"), *lightPos)
+    glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"), *viewPos)
+    glUniform1ui(glGetUniformLocation(pipeline.shaderProgram, "shininess"), int(shininess))
+
+    glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "constantAttenuation"), constantAttenuation)
+    glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "linearAttenuation"), linearAttenuation)
+    glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "quadraticAttenuation"), quadraticAttenuation)
+
+
 def saveSceneGraphNode(node):
     """ 
     Save the graph node into a python file
@@ -67,21 +87,3 @@ def saveSceneGraphNode(node):
 
     
 
-def findNode(node, name):
-    
-    # The name was not found in this path
-    if isinstance(node, gs.GPUShape):
-        return None
-
-    # This is the requested node
-    if node.name == name:
-        return node
-    
-    # All childs are checked for the requested name
-    for child in node.childs:
-        foundNode = findNode(child, name)
-        if foundNode != None:
-            return foundNode
-
-    # No child of this node had the requested name
-    return None

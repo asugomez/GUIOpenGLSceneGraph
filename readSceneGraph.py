@@ -1,4 +1,5 @@
 from grafica.scene_graph import drawSceneGraphNode
+import output
 
 if __name__ == "__main__":
     # import the out put file
