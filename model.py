@@ -46,8 +46,10 @@ class Cube(BasicShape):
         shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
         self.gpu = gpuCube
+        basic_cube = sg.SceneGraphNode('cube')
+        basic_cube.childs += [gpuCube]
         cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
-        cube.childs += [gpuCube]
+        cube.childs += [basic_cube]
         self.model = cube
 
     def draw(self, pipeline, transform = tr.identity()):
@@ -55,15 +57,6 @@ class Cube(BasicShape):
         #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
         #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
-
-    def addChild(self, pipeline):
-        print("add child in cube")
-        newCube = Cube(pipeline)
-        posy = random.uniform(-0.5,0.5)
-        posz = random.uniform(-0.5,0.5)
-        newCube.model.transform = tr.translate(0.3, posy, posz)
-        print("hihi: ", type(newCube.model))
-        self.model.childs += [newCube.model]
 
 
     def clear(self):
@@ -77,25 +70,20 @@ class AllModel(object):
         # se comeinza con un cubo básico
         #self.last_child_number = int(cube.nodeNumber)
         #print("cube last number: ", self.last_child_number)
-        first_cube = sg.SceneGraphNode("cube")
+        first_cube = sg.SceneGraphNode("cube_0")
         first_cube.childs += [cube.model]
         self.model = first_cube
 
-    def addChild(self, pipeline, nodenumber=1):# buscar por indice
-        node = sg.findNode(self.model, "cube_"+str(nodenumber))
+    def addChild(self, pipeline, nodenumber):# buscar por indice
+        node = sg.findNode(self.model, "cube_" + str(nodenumber))
         if node == None:
             print("No node founded to add child")
             return
-        print("the node founded: ", node)
-        print("the node founded: ", node.name)
         newCube = Cube(pipeline)
         posy = random.uniform(-0.5,0.5)
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
-        print(type(newCube.model))
-        
-        #node.childs += [newCube.model]
-        self.model.childs += [newCube.model]
+        node.childs += [newCube.model]
 
 
     def draw(self, pipeline, transform = tr.identity()):

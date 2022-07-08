@@ -54,7 +54,6 @@ if __name__ == "__main__":
     initial_cube = Cube(pipeline)
     all_model = AllModel(initial_cube)
 
-
     controller.set_shape(all_model) # todo change with many shapes
 
     # initiliaze imgui context (see documentation)
@@ -89,8 +88,6 @@ if __name__ == "__main__":
     while not glfw.window_should_close(window):
         # Using GLFW to check for input events
         glfw.poll_events()
-        # imgui function
-        impl.process_inputs()
 
         # Filling or not the shapes depending on the controller state
         if (controller.fillPolygon):
@@ -137,7 +134,7 @@ if __name__ == "__main__":
                 rotationAndScale
             )
         
-        glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"), #modulationColor
+        glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
             color[0], color[1], color[2])
         
         view = tr.lookAt(controller.eye, controller.at, controller.up)

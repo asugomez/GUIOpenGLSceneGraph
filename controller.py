@@ -3,12 +3,14 @@ Code from ex_transform_imgui.py example
 '''
 import numpy as np
 import imgui # see documentation here: https://github.com/ocornut/imgui#demo 
+# doc also here: https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html
 import random
 import glfw
 
 import grafica.transformations as tr
 from utils import saveSceneGraphNode
 
+node_selected = 0
 class Controller():
 
     def __init__(self):
@@ -159,7 +161,6 @@ class Controller():
     def sceneGraphGuiOverlay(self, pipeline):
         # window position
         imgui.set_next_window_position(800, 0)
-        #imgui.set_next_window_size(300, 90)
 
         # open new window context
         imgui.begin("Scene graph", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
@@ -174,8 +175,24 @@ class Controller():
             # check the node
             # add a child to the node
             print("click on add")
-            nodenumber = 1
+            global node_selected
+            nodenumber = node_selected # node selected
+            print("node selected: ", node_selected)
+            node_selected += 1
             self.add_shape(pipeline, nodenumber)
+
+        visible = True
+
+        if imgui.tree_node("Expand me!", imgui.TREE_NODE_DEFAULT_OPEN):
+            imgui.text("Lorem Ipsum")
+            if imgui.tree_node("EHello!", imgui.TREE_NODE_DEFAULT_OPEN):
+                #imgui.text("Lorem Ipsum 2")
+                if imgui.is_item_clicked() and imgui.selectable():
+                    print("Hello")
+                #print(imgui.is_item_clicked())
+                imgui.tree_pop() # call tree_pop() to finish.
+            imgui.tree_pop() # call tree_pop() to finish.
+
         # close current window context
         imgui.end()
 
