@@ -183,18 +183,19 @@ class Controller():
 
         visible = True
 
-        if imgui.tree_node("Expand me!", imgui.TREE_NODE_DEFAULT_OPEN):
-            imgui.text("Lorem Ipsum")
+        if imgui.tree_node(self.scene.model.name, imgui.TREE_NODE_DEFAULT_OPEN):
+            #print(self.scene.model.childs)
+            #print(self.scene.model.childs[0].childs)
             if imgui.tree_node("EHello!", imgui.TREE_NODE_DEFAULT_OPEN):
-                #imgui.text("Lorem Ipsum 2")
-                if imgui.is_item_clicked() and imgui.selectable():
+                if imgui.is_item_clicked():
                     print("Hello")
-                #print(imgui.is_item_clicked())
                 imgui.tree_pop() # call tree_pop() to finish.
             imgui.tree_pop() # call tree_pop() to finish.
 
         # close current window context
         imgui.end()
+
+    #def create_tree_node(self):
 
 
     def clear(self):

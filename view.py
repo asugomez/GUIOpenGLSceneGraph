@@ -143,7 +143,8 @@ if __name__ == "__main__":
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
   
         # Setting up the model
-        all_model.draw(pipeline, transformMatrix)
+        node_selected = 0
+        all_model.draw(pipeline, transformMatrix, node_selected)
 
         # Drawing the imgui texture over our drawing
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
