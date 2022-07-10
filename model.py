@@ -59,10 +59,9 @@ class AllModel(object):
         # se comeinza con un cubo básico
         self.model = cube.model #first_cube
 
-    def addChild(self, pipeline, nodenumber):
-        print("call to add child: ", nodenumber)
-        print("call to add child: ", self.model.childs[0].childs)
-        node = sg.findNode(self.model, "cube_" + str(nodenumber))
+    def addChild(self, pipeline, node_name):
+        print("call to add child: ", node_name)
+        node = sg.findNode(self.model, node_name)
         if node == None:
             print("No node founded to add child (addChild function)")
             return
@@ -71,8 +70,6 @@ class AllModel(object):
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
         node.childs += [newCube.model]
-        print("call to add child final: ", self.model.childs)
-        print("fin ")
 
 
     def draw(self, pipeline, transform, nodenumber):
