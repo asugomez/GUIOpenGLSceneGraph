@@ -15,41 +15,22 @@ def create_gpu(shape, pipeline):
     pipeline.setupVAO(gpu)
     gpu.fillBuffers(shape.vertices, shape.indices, GL_STATIC_DRAW)
     return gpu
-class BasicShape(ABC):
+
+class Cube(object):
 
     def __init__(self, pipeline):
-        self.pos_x = 0.0
-        self.pos_y = 0.0
-        self.pos_z = 0.0
-        self.r = 1 # red
-        self.g = 1 # green
-        self.b = 1 # blue
-        self.length = 1 # scale y
-        self.width = 1 # scale x 
-        self.height = 1 # scale z
-        pass
-
-    @abstractmethod
-    def draw(self, pipeline):
-        """
-        draw Scene GraphNode
-        """
-        pass
-
-class Cube(BasicShape):
-
-    def __init__(self, pipeline):
-        super(Cube, self).__init__(pipeline)
         global count_cube
         self.nodeNumber = count_cube
         count_cube += 1
         shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
-        self.gpu = gpuCube
-        basic_cube = sg.SceneGraphNode('cube')
+        #self.gpu = gpuCube
+        basic_cube = sg.SceneGraphNode('basic cube')
         basic_cube.childs += [gpuCube]
+        
         cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
-        cube.childs += [basic_cube]
+        cube.childs += [basic_cube] # leaf can not have child nodes
+
         self.model = cube
 
     def draw(self, pipeline, transform = tr.identity()):
@@ -57,6 +38,14 @@ class Cube(BasicShape):
         #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
         #sg.drawSceneGraphNode(self.model, pipeline, "model")
         sg.drawSceneGraphNode(self.model, pipeline, "model")
+
+    def addChild(self):
+        basic_cube = sg.SceneGraphNode('basic cube')
+        basic_cube.childs += [gpuCube]
+        cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
+        cube.childs += [gpuCube]#[basic_cube]
+
+        self.model = cube
 
 
     def clear(self):
@@ -68,30 +57,29 @@ class AllModel(object):
 
     def __init__(self, cube):
         # se comeinza con un cubo básico
-        #self.last_child_number = int(cube.nodeNumber)
-        #print("cube last number: ", self.last_child_number)
-        #first_cube = sg.SceneGraphNode("cube_0")
-        #first_cube.childs += [cube.model]
-        self.model = cube.model#first_cube
+        self.model = cube.model #first_cube
 
-    def addChild(self, pipeline, nodenumber):# buscar por indice
-        print(nodenumber)
+    def addChild(self, pipeline, nodenumber):
+        print("call to add child: ", nodenumber)
+        print("call to add child: ", self.model.childs[0].childs)
         node = sg.findNode(self.model, "cube_" + str(nodenumber))
-        print("nameeee: ",self.model.name)
-        #print("nameeee: ",node.name)
-        print(type(node))
         if node == None:
-            print("No node founded to add child")
+            print("No node founded to add child (addChild function)")
             return
         newCube = Cube(pipeline)
         posy = random.uniform(-0.5,0.5)
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
         node.childs += [newCube.model]
+        print("call to add child final: ", self.model.childs)
+        print("fin ")
 
 
     def draw(self, pipeline, transform, nodenumber):
         node = sg.findNode(self.model, "cube_" + str(nodenumber))
+        if node == None:
+            print("No node founded to add child (draw function)")
+            return
         node.transform = transform
         sg.drawSceneGraphNode(node, pipeline, "model")
 

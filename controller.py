@@ -6,6 +6,7 @@ import imgui # see documentation here: https://github.com/ocornut/imgui#demo
 # doc also here: https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html
 import random
 import glfw
+import grafica.gpu_shape as gs
 
 import grafica.transformations as tr
 from utils import saveSceneGraphNode
@@ -119,7 +120,6 @@ class Controller():
 
         return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
-
     def lightGuiOverlay(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
         # window position
         imgui.set_next_window_position(0, 400)
@@ -174,29 +174,64 @@ class Controller():
         if imgui.button("Add"):
             # check the node
             # add a child to the node
-            print("click on add")
             global node_selected
-            nodenumber = node_selected # node selected
-            print("node selected: ", node_selected)
+            self.add_shape(pipeline, node_selected)
             node_selected += 1
-            self.add_shape(pipeline, nodenumber)
 
         visible = True
 
-        if imgui.tree_node(self.scene.model.name, imgui.TREE_NODE_DEFAULT_OPEN):
-            #print(self.scene.model.childs)
-            #print(self.scene.model.childs[0].childs)
-            if imgui.tree_node("EHello!", imgui.TREE_NODE_DEFAULT_OPEN):
-                if imgui.is_item_clicked():
-                    print("Hello")
-                imgui.tree_pop() # call tree_pop() to finish.
-            imgui.tree_pop() # call tree_pop() to finish.
+        create_tree_node(self.scene.model)
+        # print("childs: ", self.scene.model.childs)
+        # print("first: ", self.scene.model.childs[0].childs)
+        # print("first type: ", type(self.scene.model.childs[0]))
+        # print("first type: ", type(self.scene.model.childs[0].childs))
 
+        
+        # if imgui.tree_node(self.scene.model.name, imgui.TREE_NODE_DEFAULT_OPEN):
+        #     if imgui.is_item_clicked(): # called only to open
+        #             print("Hello 0")
+        #     if imgui.tree_node("EHello 1!", imgui.TREE_NODE_DEFAULT_OPEN):
+        #         if imgui.is_item_clicked():
+        #             print("Hello 3")
+        #         imgui.tree_pop() # call tree_pop() to finish.
+
+        #     if imgui.tree_node("EHello 2!", imgui.TREE_NODE_DEFAULT_OPEN):
+        #         if imgui.is_item_clicked():
+        #             print("Hello 1")
+        #         if imgui.tree_node("EHello 3!", imgui.TREE_NODE_DEFAULT_OPEN):
+        #             if imgui.is_item_clicked():
+        #                 print("Hello 2")
+        #             imgui.tree_pop() # call tree_pop() to finish.
+        #         imgui.tree_pop() # call tree_pop() to finish.
+            
+        #     imgui.tree_pop() # call tree_pop() to finish.
+        
         # close current window context
         imgui.end()
 
-    #def create_tree_node(self):
 
 
     def clear(self):
         self.scene.clear()
+
+def create_tree_node(model):
+    print("call to create tree node for ", model.childs)
+    if len(model.childs) == 1 and isinstance(model.childs[0].childs[0], gs.GPUShape):
+        #print("im here: ", model)
+        #print("im here: ", model.name)
+        leaf = model.childs[0]
+        print("leaf: ", leaf)
+        print("leaf: ", model.name)
+        if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
+            imgui.tree_pop() # call tree_pop() to finish.
+            #print("good 2")
+    else:
+        for child in model.childs:
+            print("type: ", type(child))
+            print("child: ", child)
+            if not isinstance(child.childs[0], gs.GPUShape):
+                if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
+                    create_tree_node(child)
+                    imgui.tree_pop() 
+
+        
