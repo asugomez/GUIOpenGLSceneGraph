@@ -11,7 +11,6 @@ import grafica.gpu_shape as gs
 import grafica.transformations as tr
 from utils import saveSceneGraphNode
 
-node_selected = 0
 name_node_selected = "cube_0"
 class Controller():
 
@@ -186,13 +185,12 @@ class Controller():
         # close current window context
         imgui.end()
 
-
-
     def clear(self):
         self.scene.clear()
 
+
 def create_tree_node(model):
-    #print("call to create tree node for ", model.childs)
+    print("call to create tree node for ", model.name)
     global name_node_selected
     if len(model.childs) == 1 and isinstance(model.childs[0].childs[0], gs.GPUShape):
         if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
@@ -200,13 +198,12 @@ def create_tree_node(model):
                 name_node_selected = model.name
             imgui.tree_pop() # call tree_pop() to finish.
     else:
-        for child in model.childs:
-            if not isinstance(child.childs[0], gs.GPUShape):
-                if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
-                    if imgui.is_item_clicked():
-                        #print("node cliicked: ", model.name)
-                        name_node_selected = model.name
+        if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
+            if imgui.is_item_clicked():
+                name_node_selected = model.name
+            for child in model.childs:
+                if not isinstance(child.childs[0], gs.GPUShape):
                     create_tree_node(child)
-                    imgui.tree_pop() 
+            imgui.tree_pop() 
 
         
