@@ -1,8 +1,10 @@
 from OpenGL.GL import *
 import grafica.gpu_shape as gs
 
-
 def setUpLightsDefault(pipeline):
+    """
+    Function that sets up the light components by the default values
+    """
     # Setting all uniform shader variables 
     L = 1,1,1
     La= L
@@ -38,6 +40,9 @@ def setUpLightsDefault(pipeline):
     return La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
 def setUpLights(pipeline, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
+    """
+    Function that sets up the light components
+    """
     # White light in all components: ambient, diffuse and specular.
     glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "La"), *La)
     glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "Ld"), *Ld )
@@ -56,34 +61,37 @@ def setUpLights(pipeline, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, 
     glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "linearAttenuation"), linearAttenuation)
     glUniform1f(glGetUniformLocation(pipeline.shaderProgram, "quadraticAttenuation"), quadraticAttenuation)
 
-
-def saveSceneGraphNode(node):
-    """ 
-    Save the graph node into a python file
+def mySceneGraph(node):
     """
-    print("sgname: ", node.name)
-    print(len(node.childs))
-    # All childs are checked for the requested name
-    #for child in sgNode.childs:
-    #    print(child.name)
-    #for child in node.childs:
-    #    if child != None:
-    #        return foundNode
-    if len(node.childs) == 1 and isinstance(node.childs[0], gs.GPUShape):
-        print("name: ",node.name)
-        print("transform: ", node.transform)
-        # TODO: ver algun arbol mas complejo como ejemplo
-        # shape = 
-        # gpu_cube_3 = 
-        # cube_3 = sg.SceneGraphNode(node.name)
-        # cube_3.transform = node.transform
-        # cube_3.childs += [gpu]
+    Recursive function that writes in the modeloutput.py file the model (shape, gpu and scene graph node)
+    """
+    if len(node.childs) == 1 and isinstance(node.childs[0].childs[0], gs.GPUShape):
+        # write it on a python program
+        f = open("./modeloutput.py", "a")
+        f.write("   # writing the cube leaf: " + node.name + "\n")
+        f.write("   shape = bs.createColorNormalsCube(0.5,0.5,0.5)\n")
+        f.write("   gpuCube = create_gpu(shape, pipeline)\n")
+        f.write("   basic_" + node.name + " = sg.SceneGraphNode('basic_" + node.name + "')\n")
+        #f.write("   basic_" + node.name + ".transform =" + str(newTransform.tolist()) + "\n") # new transform to apply to node
+        f.write("   basic_" + node.name + ".childs += [gpuCube]\n") # gpu basic cube
+        f.write("   " + node.name + " = sg.SceneGraphNode('"+node.name+"')\n") #scenegraphnode with node name
+        f.write("   " + node.name + ".transform =" + str(node.transform.tolist()) + "\n") # new transform to apply to node
+        f.write("   " + node.name + ".childs += [basic_" + node.name + "]\n")
+        f.write("\n")
+        f.close()
 
-    # If the child node is not a leaf, it MUST be a SceneGraphNode,
-    # so this draw function is called recursively
     else:
         for child in node.childs:
-            saveSceneGraphNode(child)
+            if not isinstance(child.childs[0], gs.GPUShape):
+                mySceneGraph(child)
+        f = open("./modeloutput.py", "a")
+        f.write("   # writing the cube node: " + node.name + "\n")
+        f.write("   " + node.name + " = sg.SceneGraphNode('" + node.name + "')\n")
+        f.write("   " + node.name + ".transform = " + str(node.transform.tolist()) + "\n")
+        for child in node.childs:
+            f.write("   " + node.name + ".childs += [" + child.name + "]\n")
+        f.write("\n")
+        f.close()
 
     
 

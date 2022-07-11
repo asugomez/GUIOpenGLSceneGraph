@@ -21,60 +21,48 @@ class Cube(object):
     def __init__(self, pipeline):
         global count_cube
         self.nodeNumber = count_cube
-        count_cube += 1
-        shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
+        shape = bs.createColorNormalsCube(0.5,0.5,0.5) # WithNormal
         gpuCube = create_gpu(shape, pipeline)
-        #self.gpu = gpuCube
         basic_cube = sg.SceneGraphNode('basic_cube')
         basic_cube.childs += [gpuCube]
-        
         cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
         cube.childs += [basic_cube] # leaf can not have child nodes
-
         self.model = cube
-
-    def draw(self, pipeline, transform = tr.identity()):
-        self.model.transform = transform
-        #glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "model"), 1, GL_TRUE, transform)
-        #sg.drawSceneGraphNode(self.model, pipeline, "model")
-        sg.drawSceneGraphNode(self.model, pipeline, "model")
-
-    def addChild(self):
-        basic_cube = sg.SceneGraphNode('basic cube')
-        basic_cube.childs += [gpuCube]
-        cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
-        cube.childs += [gpuCube]#[basic_cube]
-
-        self.model = cube
-
 
     def clear(self):
         self.model.clear()
 
-    # def addNode()
 
 class AllModel(object):
 
     def __init__(self, cube):
-        # se comeinza con un cubo básico
+        # we start with a basic cube
         self.model = cube.model #first_cube
-        #self.last_transform = tr.identity() # how to save the transformation
-        #self.
+       
 
-    def addChild(self, pipeline, node_name):
-        print("call to add child: ", node_name)
+    def addRandomChild(self, pipeline, node_name):
+        """
+        Add a random newCube to the node_name node
+        """
+        global count_cube
+        count_cube += 1
         node = sg.findNode(self.model, node_name)
         if node == None:
             print("No node founded to add child (addChild function)")
             return
         newCube = Cube(pipeline)
+        print("new cube: ", newCube.nodeNumber)
         posy = random.uniform(-0.5,0.5)
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
         node.childs += [newCube.model]
 
     def addChildV2(self, pipeline, node_name, newCube):
-        print("call to add child: ", node_name)
+        """
+        Add newCube as a child node to node_name node
+        """
+        global count_cube
+        count_cube += 1
         node = sg.findNode(self.model, node_name)
         if node == None:
             print("No node founded to add child (addChild function)")
@@ -83,13 +71,11 @@ class AllModel(object):
 
 
     def draw(self, pipeline, transform, node_name):
-        # todo: draw all the model  with the transforms
         node = sg.findNode(self.model, node_name)
         if node == None:
             print("No node founded to add child (draw function)")
             return
         node.transform = transform
-        #sg.drawSceneGraphNodeV2(node, node_to_transform_name, pipeline, transformName)
         sg.drawSceneGraphNode(self.model, pipeline, "model")
 
 
@@ -97,31 +83,6 @@ class AllModel(object):
         self.model.clear()
 
     
-def addChild(node, name, pipeline):
-    
-    # The name was not found in this path
-    if isinstance(node, gs.GPUShape):
-        return None
-
-    # This is the requested node
-    if node.name == name:
-        print("ime here")
-        newCube = Cube(pipeline)
-        posy = random.uniform(-0.5,0.5)
-        posz = random.uniform(-0.5,0.5)
-        newCube.model.transform = tr.translate(0.3, posy, posz)
-        print(type(newCube.model))
-        node.childs += [newCube.model]
-        return
-    
-    # All childs are checked for the requested name
-    for child in node.childs:
-        print("hello")
-        foundNode = addChild(child, name, pipeline)
-
-    # No child of this node had the requested name
-    return None
-
 
 
 

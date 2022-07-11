@@ -1,18 +1,13 @@
-'''
-Code from ex_transform_imgui.py example
-'''
 import numpy as np
 import imgui # see documentation here: https://github.com/ocornut/imgui#demo 
 # doc also here: https://pyimgui.readthedocs.io/en/latest/reference/imgui.core.html
 import random
 import glfw
 import grafica.gpu_shape as gs
-from grafica.scene_graph import mySceneGraph
+import grafica.transformations as tr
+from utils import mySceneGraph
 
 from model import Cube
-
-import grafica.transformations as tr
-from utils import saveSceneGraphNode
 
 class Controller():
 
@@ -25,7 +20,20 @@ class Controller():
         self.up = np.array([0, 0, 1])
         self.at = np.array([1, 0, 0.1])
         self.projection = tr.perspective(45, self.width/self.height, 0.1, 100)
-        self.name_node_selected = "cube_0"
+        self.name_node_selected = "cube_0" # initial node
+        L = 1,1,1 # initial value
+        self.La= L
+        self.Ld= L
+        self.Ls= L
+        self.Ka = L
+        self.Kd = L
+        self.Ks = L
+        self.lightPos = -5, -5, 5
+        self.shininess = 200
+        self.constantAttenuation = 0.01
+        self.linearAttenuation = 0.003
+        self.quadraticAttenuation = 0.01
+        self.modulationColor = 1,1,1
 
     @property
     def mouseX(self):
@@ -45,13 +53,34 @@ class Controller():
     def add_shape(self, pipeline, node_name):
         newCube = Cube(pipeline)
         newCube.model.transform = tr.translate(0.3, 0, 0.3)
-        self.scene.addChildV2(pipeline, node_name, newCube)
-        #self.scene.addChild(pipeline, node_name)
+        #self.scene.addChildV2(pipeline, node_name, newCube)
+        self.scene.addRandomChild(pipeline, node_name)
+
+    def save_setup_lights(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation, modulationColor):
+        """
+        Function that saves the light components
+        """
+        self.La= La
+        self.Ld= Ld
+        self.Ls= Ls
+        self.Ka = Ka
+        self.Kd = Kd
+        self.Ks = Ks
+        self.lightPos = lightPos
+        self.viewPos = viewPos
+        self.shininess = shininess
+        self.constantAttenuation = constantAttenuation
+        self.linearAttenuation = linearAttenuation
+        self.quadraticAttenuation = quadraticAttenuation
+        self.modulationColor = modulationColor
+        #print(La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation, modulationColor)
+        
+    def get_setup_lights(self):
+        return self.La, self.Ld, self.Ls, self.Ka, self.Kd, self.Ks, self.lightPos, self.viewPos, self.shininess, self.constantAttenuation, self.linearAttenuation, self.quadraticAttenuation, self.modulationColor
 
     def cursor_pos_callback(self, window, x, y):
         #print("call back cursor")
         self.mousePos = (x,y)
-
 
     def on_key(self, window, key, scancode, action, mods):
     
@@ -80,24 +109,21 @@ class Controller():
             self.up = np.array([0, 0, 1])
             self.projection = tr.perspective(80, self.width/self.height, 0.1, 100)
 
-        # save code
-        elif key == glfw.KEY_3 and action == glfw.PRESS:
-            print("click on 3")
-            mySceneGraph(self.scene.model)
-            
-
         else:
             print('Unknown key')
 
-    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, sgnode):
+    def transformGuiOverlay(self, locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline):
+        """
+        Create the frame to modify the position, scale, color and angle 
+        """
         # open new window context
         imgui.begin("3D Transformations control", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
         #imgui.treee
         imgui.text("Transformations and constants")
 
         # position
-        edited, locationX = imgui.slider_float("location X", locationX, -0.5, 0.5)
-        edited, locationY = imgui.slider_float("location Y", locationY, -0.5, 0.5)
+        edited, locationX = imgui.slider_float("location X", locationX, -1, 3)
+        edited, locationY = imgui.slider_float("location Y", locationY, -1, 1)
         edited, locationZ = imgui.slider_float("location Z", locationZ, -0.5, 0.5)
         # scale
         edited, scaleX = imgui.slider_float("scale X", scaleX, 0, 5)
@@ -126,6 +152,9 @@ class Controller():
         return locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color
 
     def lightGuiOverlay(self, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation):
+        """
+        Create the frame to modify the light components (constants, ligh and view position, shininess)
+        """
         # window position
         imgui.set_next_window_position(0, 400)
 
@@ -164,33 +193,18 @@ class Controller():
         return La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation
 
     def sceneGraphGuiOverlay(self, pipeline):
+        """
+        Create the frame to see the scene graph tree node and the buttons 'save' and 'add'
+        """
         # window position
         imgui.set_next_window_position(800, 0)
 
         # open new window context
         imgui.begin("Scene graph", False, imgui.WINDOW_ALWAYS_AUTO_RESIZE)
 
-        # draw text label inside of current window
-        #imgui.text("Configuration sliders")
         if imgui.button("Save"):
             print("click on save")
-            f = open("./modeloutput.py", "w")
-            f.write("# imports \n")
-            f.write("import grafica.basic_shapes as bs\n")
-            f.write("import grafica.scene_graph as sg\n")
-            f.write("from model import create_gpu\n")
-            f.write("\n")
-            f.write("def createModel(pipeline):\n")
-            f.write("   shape = bs.createColorNormalsCube(0.5,0.5,0.5)\n")
-            f.write("   gpuCube = create_gpu(shape, pipeline)\n")
-            f.write("   basic_cube = sg.SceneGraphNode('basic_cube')\n")
-            f.write("   basic_cube.childs += [gpuCube]\n")
-            f.write("\n")
-            f.close()
-            mySceneGraph(self.scene.model)
-            f = open("./modeloutput.py", "a")
-            f.write("   return cube_0")
-            f.close()
+            self.create_code_output()
 
         imgui.same_line()
         if imgui.button("Add"):
@@ -208,6 +222,9 @@ class Controller():
         self.scene.clear()
 
     def create_tree_node(self, model):
+        """
+        Recursive function that creates the scene graph tree node
+        """
         # TODO draw as selected
         if len(model.childs) == 1 and isinstance(model.childs[0].childs[0], gs.GPUShape):
             if imgui.tree_node(model.name, imgui.TREE_NODE_SELECTED): # change to opened
@@ -226,4 +243,35 @@ class Controller():
                         self.create_tree_node(child)
                 imgui.tree_pop() 
 
-        
+    def create_code_output(self):
+        """
+        Function that creates the output code to make the model
+        It saves all the model and the lights set up
+        """
+        # fun createModel
+        f = open("./modeloutput.py", "w")
+        f.write("# imports \n")
+        f.write("import grafica.basic_shapes as bs\n")
+        f.write("import grafica.scene_graph as sg\n")
+        f.write("from model import create_gpu\n")
+        f.write("\n")
+        f.write("def createModel(pipeline):\n")
+        f.write("   shape = bs.createColorNormalsCube(0.5,0.5,0.5)\n")
+        f.write("   gpuCube = create_gpu(shape, pipeline)\n")
+        f.write("   basic_cube = sg.SceneGraphNode('basic_cube')\n")
+        f.write("   basic_cube.childs += [gpuCube]\n")
+        f.write("\n")
+        f.close()
+        # write the model
+        mySceneGraph(self.scene.model)
+        f = open("./modeloutput.py", "a")
+        f.write("   return cube_0\n")
+        f.close()
+        # fun setUpLights
+        La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation, modulationColor = \
+            self.get_setup_lights()
+        f = open("./modeloutput.py", "a")
+        f.write("# fun to set up lights\n")
+        f.write("def setUpLightsOutput():\n")
+        f.write("   return " + str(La) + ", " + str(Ld) + ", " + str(Ls) + ", " + str(Ka) + ", " +  str(Kd) + ", " +  str(Ks) + ", " + str(lightPos) + ", " + str(viewPos) + ", " +str(shininess) + ", " +  str(constantAttenuation) + ", " + str(linearAttenuation) + ", " + str(quadraticAttenuation) + ", " + str(modulationColor) + "\n")
+        f.close()

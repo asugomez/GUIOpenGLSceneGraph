@@ -79,10 +79,11 @@ if __name__ == "__main__":
     angleZ = 0.4
     color = (0.5, 0.5, 0.5)
 
-    # ilumination
+    # initial setup: ilumination
     La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation = \
         setUpLightsDefault(pipeline)
-
+    
+    # initial setup: view position
     viewPos = controller.eye[0], controller.eye[1], controller.eye[2]
 
     while not glfw.window_should_close(window):
@@ -102,7 +103,8 @@ if __name__ == "__main__":
         imgui.new_frame()
         # 3D transformation
         locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color= \
-            controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline, controller.scene.model)
+            controller.transformGuiOverlay(locationX, locationY, locationZ, scaleX, scaleY, scaleZ, angleX, angleY, angleZ, color, pipeline)
+        
         # ilumination
         La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation =\
             controller.lightGuiOverlay(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
@@ -134,8 +136,9 @@ if __name__ == "__main__":
                 rotationAndScale
             )
         
+        modulationColor = color[0], color[1], color[2]
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
-            color[0], color[1], color[2])
+            *modulationColor)
         
         view = tr.lookAt(controller.eye, controller.at, controller.up)
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"), controller.eye[0], controller.eye[1], controller.eye[2])
@@ -143,8 +146,10 @@ if __name__ == "__main__":
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, controller.projection)
   
         # Setting up the model
-        all_model.draw(pipeline, transformMatrix, "cube_0")#controller.name_node_selected)
-
+        all_model.draw(pipeline, transformMatrix, controller.name_node_selected) #"cube_0"
+        # Saving lights setup 
+        controller.save_setup_lights(La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation, modulationColor)
+        
         # Drawing the imgui texture over our drawing
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
         impl.render(imgui.get_draw_data())
@@ -153,7 +158,7 @@ if __name__ == "__main__":
         glfw.swap_buffers(window)
 
     # freeing GPU memory
-    #controller.clear()
+    controller.clear()
 
     impl.shutdown()
     glfw.terminate()

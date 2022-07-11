@@ -11,9 +11,8 @@ import grafica.easy_shaders as es
 import grafica.basic_shapes as bs
 import grafica.scene_graph as sg
 
-from modeloutput import createModel
-from utils import setUpLightsDefault
-
+from modeloutput import createModel, setUpLightsOutput
+from utils import setUpLights
 
 if __name__ == "__main__":
 
@@ -54,9 +53,10 @@ if __name__ == "__main__":
     final_model = createModel(pipeline)
 
     # ilumination
-    La, Ld, Ls, Ka, Kd, Ks, lightPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation = \
-        setUpLightsDefault(pipeline)
+    La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation, modulationColor = setUpLightsOutput()
 
+    setUpLights(pipeline, La, Ld, Ls, Ka, Kd, Ks, lightPos, viewPos, shininess, constantAttenuation, linearAttenuation, quadraticAttenuation)
+    
     eye = np.array([-2, 0, 0.1])
     up = np.array([0, 0, 1])
     at = np.array([1, 0, 0.1])
@@ -73,7 +73,7 @@ if __name__ == "__main__":
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "modulationColor"),
-            1,1,1)
+            *modulationColor)
         glUniform3f(glGetUniformLocation(pipeline.shaderProgram, "viewPosition"), eye[0], eye[1], eye[2])
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "view"), 1, GL_TRUE, view)
         glUniformMatrix4fv(glGetUniformLocation(pipeline.shaderProgram, "projection"), 1, GL_TRUE, projection)
