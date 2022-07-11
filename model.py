@@ -25,7 +25,7 @@ class Cube(object):
         shape = bs.createColorNormalsCube(0.5,0.5,0.5) #WithNormal
         gpuCube = create_gpu(shape, pipeline)
         #self.gpu = gpuCube
-        basic_cube = sg.SceneGraphNode('basic cube')
+        basic_cube = sg.SceneGraphNode('basic_cube')
         basic_cube.childs += [gpuCube]
         
         cube = sg.SceneGraphNode('cube_' + str(self.nodeNumber)) # the nodenumber will help to have a hierarchy
@@ -58,6 +58,8 @@ class AllModel(object):
     def __init__(self, cube):
         # se comeinza con un cubo básico
         self.model = cube.model #first_cube
+        #self.last_transform = tr.identity() # how to save the transformation
+        #self.
 
     def addChild(self, pipeline, node_name):
         print("call to add child: ", node_name)
@@ -71,14 +73,24 @@ class AllModel(object):
         newCube.model.transform = tr.translate(0.3, posy, posz)
         node.childs += [newCube.model]
 
+    def addChildV2(self, pipeline, node_name, newCube):
+        print("call to add child: ", node_name)
+        node = sg.findNode(self.model, node_name)
+        if node == None:
+            print("No node founded to add child (addChild function)")
+            return
+        node.childs += [newCube.model]
 
-    def draw(self, pipeline, transform, nodenumber):
-        node = sg.findNode(self.model, "cube_" + str(nodenumber))
+
+    def draw(self, pipeline, transform, node_name):
+        # todo: draw all the model  with the transforms
+        node = sg.findNode(self.model, node_name)
         if node == None:
             print("No node founded to add child (draw function)")
             return
         node.transform = transform
-        sg.drawSceneGraphNode(node, pipeline, "model")
+        #sg.drawSceneGraphNodeV2(node, node_to_transform_name, pipeline, transformName)
+        sg.drawSceneGraphNode(self.model, pipeline, "model")
 
 
     def clear(self):

@@ -7,11 +7,13 @@ import imgui # see documentation here: https://github.com/ocornut/imgui#demo
 import random
 import glfw
 import grafica.gpu_shape as gs
+from grafica.scene_graph import mySceneGraph
+
+from model import Cube
 
 import grafica.transformations as tr
 from utils import saveSceneGraphNode
 
-name_node_selected = "cube_0"
 class Controller():
 
     def __init__(self):
@@ -23,6 +25,7 @@ class Controller():
         self.up = np.array([0, 0, 1])
         self.at = np.array([1, 0, 0.1])
         self.projection = tr.perspective(45, self.width/self.height, 0.1, 100)
+        self.name_node_selected = "cube_0"
 
     @property
     def mouseX(self):
@@ -40,7 +43,10 @@ class Controller():
         self.scene = shape
 
     def add_shape(self, pipeline, node_name):
-        self.scene.addChild(pipeline, node_name)
+        newCube = Cube(pipeline)
+        newCube.model.transform = tr.translate(0.3, 0, 0.3)
+        self.scene.addChildV2(pipeline, node_name, newCube)
+        #self.scene.addChild(pipeline, node_name)
 
     def cursor_pos_callback(self, window, x, y):
         #print("call back cursor")
@@ -77,9 +83,8 @@ class Controller():
         # save code
         elif key == glfw.KEY_3 and action == glfw.PRESS:
             print("click on 3")
-            #f = open("./demofile2.txt", "w")
-            #f.write("Now the file has more content!")
-            #f.close()
+            mySceneGraph(self.scene.model)
+            
 
         else:
             print('Unknown key')
@@ -169,18 +174,32 @@ class Controller():
         #imgui.text("Configuration sliders")
         if imgui.button("Save"):
             print("click on save")
-            saveSceneGraphNode(sgnode)
+            f = open("./modeloutput.py", "w")
+            f.write("# imports \n")
+            f.write("import grafica.basic_shapes as bs\n")
+            f.write("import grafica.scene_graph as sg\n")
+            f.write("from model import create_gpu\n")
+            f.write("\n")
+            f.write("def createModel(pipeline):\n")
+            f.write("   shape = bs.createColorNormalsCube(0.5,0.5,0.5)\n")
+            f.write("   gpuCube = create_gpu(shape, pipeline)\n")
+            f.write("   basic_cube = sg.SceneGraphNode('basic_cube')\n")
+            f.write("   basic_cube.childs += [gpuCube]\n")
+            f.write("\n")
+            f.close()
+            mySceneGraph(self.scene.model)
+            f = open("./modeloutput.py", "a")
+            f.write("   return cube_0")
+            f.close()
+
         imgui.same_line()
         if imgui.button("Add"):
-            # check the node
             # add a child to the node
-            global name_node_selected
-            print("node selected: ", name_node_selected)
-            self.add_shape(pipeline, name_node_selected)
+            self.add_shape(pipeline, self.name_node_selected)
 
         visible = True
 
-        create_tree_node(self.scene.model)
+        self.create_tree_node(self.scene.model)
         
         # close current window context
         imgui.end()
@@ -188,22 +207,23 @@ class Controller():
     def clear(self):
         self.scene.clear()
 
+    def create_tree_node(self, model):
+        # TODO draw as selected
+        if len(model.childs) == 1 and isinstance(model.childs[0].childs[0], gs.GPUShape):
+            if imgui.tree_node(model.name, imgui.TREE_NODE_SELECTED): # change to opened
+                if imgui.is_item_clicked():
+                    #imgui.tree_node.flags(imgui.TREE_NODE_SELECTED)
+                    self.name_node_selected = model.name
+                imgui.tree_pop() # call tree_pop() to finish.
+        else:
+            if imgui.tree_node(model.name, imgui.TREE_NODE_SELECTED):
+                if imgui.is_item_clicked():
+                    #imgui.TREE_NODE_SELECTED
+                    self.name_node_selected = model.name
 
-def create_tree_node(model):
-    print("call to create tree node for ", model.name)
-    global name_node_selected
-    if len(model.childs) == 1 and isinstance(model.childs[0].childs[0], gs.GPUShape):
-        if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
-            if imgui.is_item_clicked():
-                name_node_selected = model.name
-            imgui.tree_pop() # call tree_pop() to finish.
-    else:
-        if imgui.tree_node(model.name, imgui.TREE_NODE_DEFAULT_OPEN):
-            if imgui.is_item_clicked():
-                name_node_selected = model.name
-            for child in model.childs:
-                if not isinstance(child.childs[0], gs.GPUShape):
-                    create_tree_node(child)
-            imgui.tree_pop() 
+                for child in model.childs:
+                    if not isinstance(child.childs[0], gs.GPUShape):
+                        self.create_tree_node(child)
+                imgui.tree_pop() 
 
         
