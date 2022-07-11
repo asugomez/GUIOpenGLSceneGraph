@@ -51,7 +51,6 @@ class AllModel(object):
             print("No node founded to add child (addChild function)")
             return
         newCube = Cube(pipeline)
-        print("new cube: ", newCube.nodeNumber)
         posy = random.uniform(-0.5,0.5)
         posz = random.uniform(-0.5,0.5)
         newCube.model.transform = tr.translate(0.3, posy, posz)
